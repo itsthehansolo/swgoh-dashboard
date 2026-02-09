@@ -1,2 +1,2 @@
 # swgoh-dashboard
-A Live SWGoH dashboars for units, ships and mods.
+A Live SWGoH dashboard for units, ships and mods.
