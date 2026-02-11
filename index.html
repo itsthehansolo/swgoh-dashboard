@@ -56,6 +56,7 @@
         .match-fail { color: #ef4444; }
         .rec-hint { display: block; font-size: 0.55rem; opacity: 0.7; font-weight: normal; }
 
+        /* Mod Stat Färgkodning */
         .stat-Health { background-color: #064e3b; color: #34d399; }
         .stat-Speed { background-color: #7f1d1d; color: #f87171; }
         .stat-Protection { background-color: #164e63; color: #22d3ee; }
@@ -153,17 +154,18 @@
         </section>
     </main>
 
-    <footer id="build-tag">build_260211085420</footer>
+    <footer id="build-tag">build_260211085912</footer>
 
     <script>
         let fullData = { game: null, kyro: null, mods: null };
 
         async function initDashboard() {
             try {
+                // Fix: Använder explicita relativa sökvägar för att undvika parse-fel i vissa miljöer
                 const [gameRes, kyroRes, modsRes] = await Promise.all([
-                    fetch('data/game_data.json').then(r => r.json()),
-                    fetch('data/kyro_data.json').then(r => r.json()),
-                    fetch('data/mods_data.json').then(r => r.json())
+                    fetch('./data/game_data.json').then(r => r.json()),
+                    fetch('./data/kyro_data.json').then(r => r.json()),
+                    fetch('./data/mods_data.json').then(r => r.json())
                 ]);
 
                 fullData.game = gameRes;
@@ -175,7 +177,7 @@
             } catch (err) {
                 console.error("Fetch error:", err);
                 document.getElementById('stats-grid').innerHTML = 
-                    '<div class="text-rose-500 text-xs font-bold px-2 py-1 bg-rose-500/10 rounded">FEL: Kunde inte läsa JSON.</div>';
+                    '<div class="text-rose-500 text-xs font-bold px-2 py-1 bg-rose-500/10 rounded">FEL: Kunde inte läsa JSON-filer. Kontrollera sökvägen.</div>';
             }
         }
 
@@ -196,6 +198,7 @@
 
         function getStatClass(statName) {
             if (!statName || statName === '-') return 'stat-none';
+            // Tar bort mellanslag för att matcha CSS-klasser (t.ex. Crit Damage -> Crit-Damage)
             const clean = statName.replace(/\s+/g, '-');
             return `stat-${clean}`;
         }
