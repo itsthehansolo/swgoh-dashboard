@@ -202,8 +202,8 @@
             if (!data) return;
             const stats = [
                 { label: 'Galactic Power', value: (data.galactic_power || 0).toLocaleString() },
-                { label: 'Char GP', value: (data.character_galactic_power || 0).toLocaleString() },
-                { label: 'Arena', value: `#${data.arena_rank || '?'}` }
+                { label: 'Character Galactic Power', value: (data.character_galactic_power || 0).toLocaleString() },
+                { label: 'Arena Rank', value: `#${data.arena_rank || '?'}` }
             ];
             grid.innerHTML = stats.map(s => `
                 <div class="flex items-baseline space-x-2">
