@@ -117,12 +117,12 @@
 
     <main class="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-grow">
         <section class="xl:col-span-3">
-            <h2 class="text-[10px] font-bold mb-1 uppercase tracking-widest text-slate-400 px-1 text-center sm:text-left">Unlocked Units</h2>
+            <h2 class="text-[10px] font-bold mb-1 uppercase tracking-widest text-slate-400 px-1">Upplåsta Karaktärer</h2>
             <div class="table-container max-h-[70vh] overflow-y-auto shadow-2xl">
                 <table id="units-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Namn</th>
                             <th class="text-center">Lvl</th>
                             <th class="text-center">Stars</th>
                             <th class="text-center">Gear</th>
@@ -135,7 +135,7 @@
         </section>
 
         <section class="xl:col-span-9">
-            <h2 class="text-[10px] font-bold mb-1 uppercase tracking-widest text-slate-400 px-1 text-center sm:text-left">Mod Comparison</h2>
+            <h2 class="text-[10px] font-bold mb-1 uppercase tracking-widest text-slate-400 px-1">Mod Jämförelse</h2>
             <div class="table-container max-h-[70vh] overflow-y-auto shadow-2xl">
                 <table id="comparison-table">
                     <thead>
@@ -155,24 +155,29 @@
         </section>
     </main>
 
-    <footer id="build-tag">build_260211093122</footer>
+    <footer id="build-tag">build_260211093100</footer>
 
     <script>
-        const BUILD_ID = "build_260211093122";
+        const BUILD_ID = "build_260211093100";
         let fullData = { game: null, kyro: null, mods: null };
+
+        // Rensar osynliga tecken som kan finnas i JSON-data
+        function cleanName(name) {
+            if (!name) return "";
+            return name.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+        }
 
         async function initDashboard() {
             try {
-                // Försöker hämta data med flera sökvägsvarianter för att hantera olika servermiljöer
                 const tryFetch = async (fileName) => {
-                    const paths = [`data/${fileName}`, `./data/${fileName}`, `/${fileName}`];
+                    const paths = [`data/${fileName}`, `./data/${fileName}`, `${window.location.pathname.replace('index.html', '')}data/${fileName}`];
                     for (const path of paths) {
                         try {
                             const res = await fetch(path);
                             if (res.ok) return await res.json();
                         } catch (e) { continue; }
                     }
-                    throw new Error(`Kunde inte ladda ${fileName}`);
+                    throw new Error(`Kunde inte hitta ${fileName}`);
                 };
 
                 const [gameRes, kyroRes, modsRes] = await Promise.all([
@@ -191,8 +196,8 @@
                 console.error("Fetch error:", err);
                 document.getElementById('stats-grid').innerHTML = 
                     `<div class="text-rose-500 text-xs font-bold px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded">
-                        FEL: Kunde inte läsa JSON-filer. Kontrollera mappen 'data'.<br>
-                        <span class="opacity-70 text-[10px]">${err.message} | ${BUILD_ID}</span>
+                        FEL: Kunde inte läsa JSON-filer. Kontrollera sökvägen.<br>
+                        <span class="opacity-70 text-[10px]">${err.message}</span>
                     </div>`;
             }
         }
@@ -228,14 +233,15 @@
             compBody.innerHTML = '';
 
             units.forEach(unit => {
-                if (filter && !unit.name.toLowerCase().includes(filter.toLowerCase())) return;
+                const uName = cleanName(unit.name);
+                if (filter && !uName.toLowerCase().includes(filter.toLowerCase())) return;
 
-                const kyroInfo = kyros.find(k => k.name.trim() === unit.name.trim());
+                const kyroInfo = kyros.find(k => cleanName(k.name) === uName);
                 const kyroValue = kyroInfo ? kyroInfo.total_kyros : '-';
                 
                 unitsBody.insertAdjacentHTML('beforeend', `
                     <tr>
-                        <td class="font-semibold text-slate-200">${unit.name}</td>
+                        <td class="font-semibold text-slate-200">${uName}</td>
                         <td class="text-center">${unit.level}</td>
                         <td class="text-center">${unit.rarity}</td>
                         <td class="text-center">G${unit.gear_level}${unit.relic_tier > 2 ? ' R' + (unit.relic_tier - 2) : ''}</td>
