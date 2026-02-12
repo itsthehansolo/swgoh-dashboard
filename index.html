@@ -15,8 +15,10 @@
             flex-direction: column;
         }
         .header-bg { background-color: #0f172a; border-bottom: 1px solid #1e293b; }
-        .stat-label { color: #94a3b8; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.025em; }
-        .stat-value { color: #f1f5f9; font-size: 0.9rem; font-weight: 700; }
+        
+        /* Uppdaterade stat-klasser för att matcha Galactic Power storlek */
+        .stat-label { color: #94a3b8; font-size: 1.25rem; font-weight: 700; text-transform: uppercase; letter-spacing: -0.025em; }
+        .stat-value { color: #eab308; font-size: 1.25rem; font-weight: 700; }
         
         .table-container { 
             background-color: #111827; 
@@ -106,7 +108,6 @@
         <div class="flex items-center space-x-12">
             <h1 class="text-3xl font-black text-yellow-500 tracking-tighter mr-4">SWGHDash</h1>
             <div id="stats-grid" class="flex items-center space-x-12">
-                <!-- Data injiceras här -->
                 <div class="flex items-center space-x-3">
                     <div class="loading-spinner"></div>
                     <span class="text-xs text-slate-400">Hämtar data...</span>
@@ -158,10 +159,10 @@
         </section>
     </main>
 
-    <footer id="build-tag">build_260212_223500</footer>
+    <footer id="build-tag">build_260212_224500</footer>
 
     <script>
-        const BUILD_ID = "build_260212_223500";
+        const BUILD_ID = "build_260212_224500";
         let fullData = { game: null, kyro: null, mods: null, playerMd: null };
 
         function cleanName(name) {
@@ -201,48 +202,42 @@
                 renderTables(gameRes.units, kyroRes.characters, modsRes);
             } catch (err) {
                 console.error("Fetch error:", err);
-                document.getElementById('stats-grid').innerHTML = `<span class="text-rose-500 text-xs">Fel vid inläsning</span>`;
             }
         }
 
-        /**
-         * Renderar headern i den 2-radiga layouten från din bild.
-         * Ordningen i player_data.md antas vara: 
-         * 0:GP, 1:CharGP, 2:ShipGP, 3:ArenaWins, 4:FleetWins, 5:ArenaRank, 6:FleetRank
-         */
         function renderHeader(stats) {
             const grid = document.getElementById('stats-grid');
             if (!stats || stats.length < 7) return;
 
-            // Hjälpfunktion för att skapa en stat-rad
+            // Hjälpfunktion för stat-rader med fet stil och enhetlig storlek
             const row = (s) => `
-                <div class="flex items-center space-x-2">
-                    <span class="stat-label whitespace-nowrap text-slate-400">${s.label}</span>
-                    <span class="stat-value text-yellow-500">${s.value}</span>
+                <div class="flex items-center space-x-3">
+                    <span class="stat-label whitespace-nowrap">${s.label}</span>
+                    <span class="stat-value">${s.value}</span>
                 </div>
             `;
 
             grid.innerHTML = `
-                <!-- Grupp 1: Galactic Power (Stor) -->
-                <div class="flex items-center space-x-3 pr-4 border-r border-slate-800">
-                    <span class="stat-label text-[0.7rem]">Galactic Power</span>
-                    <span class="text-xl font-black text-yellow-500">${stats[0].value}</span>
+                <!-- Grupp 1: Galactic Power -->
+                <div class="flex items-center space-x-4 pr-6 border-r border-slate-800">
+                    <span class="stat-label">Galactic Power</span>
+                    <span class="text-3xl font-black text-yellow-500">${stats[0].value}</span>
                 </div>
 
                 <!-- Grupp 2: Power-detaljer -->
-                <div class="flex flex-col justify-center space-y-0.5">
+                <div class="flex flex-col justify-center space-y-1">
                     ${row(stats[1])}
                     ${row(stats[2])}
                 </div>
 
                 <!-- Grupp 3: Vinster -->
-                <div class="flex flex-col justify-center space-y-0.5">
+                <div class="flex flex-col justify-center space-y-1">
                     ${row(stats[3])}
                     ${row(stats[4])}
                 </div>
 
                 <!-- Grupp 4: Ranks -->
-                <div class="flex flex-col justify-center space-y-0.5">
+                <div class="flex flex-col justify-center space-y-1">
                     ${row(stats[5])}
                     ${row(stats[6])}
                 </div>
