@@ -50,7 +50,7 @@
     <!-- Top Player Bar -->
     <div class="header-bg p-4 flex items-center shadow-lg mb-4">
         <div class="player-stat">
-            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Spelare</div>
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Player</div>
             <div id="player-name" class="text-xl font-black text-yellow-500">-</div>
         </div>
         <div class="player-stat">
@@ -109,9 +109,10 @@
         }
 
         /**
-         * Calculate Equipped Set Bonus string
+         * Calculate Equipped Set Bonus string from mod list
          */
         function getEquippedSetBonus(characterId, mods) {
+            if (!mods) return "-";
             const charMods = mods.filter(m => m.character === characterId);
             const counts = {};
             charMods.forEach(m => {
@@ -132,20 +133,24 @@
         }
 
         /**
-         * Fetch and initialize data
+         * Fetch and initialize data from JSON file
          */
         async function loadData() {
             try {
-                // CHANGED: Removed 'db/' prefix because files are in the same folder
                 const dataUrl = 'db_master_data.json';
                 const response = await fetch(dataUrl);
                 
                 if (!response.ok) {
-                    throw new Error(`Kunde inte hitta ${dataUrl} (Status: ${response.status})`);
+                    throw new Error(`Could not fetch ${dataUrl} (Status: ${response.status})`);
                 }
                 
                 fullData = await response.json();
+                console.log("Data loaded successfully:", fullData); // Debug log
                 
+                if (!fullData.units || !Array.isArray(fullData.units)) {
+                    throw new Error("Invalid JSON structure: 'units' array missing.");
+                }
+
                 renderPlayerHeader();
                 renderTable();
             } catch (err) {
@@ -153,27 +158,35 @@
                 document.getElementById('table-body').innerHTML = `
                     <tr>
                         <td colspan="18" class="text-center p-10 text-rose-500 font-bold">
-                            FEL: ${err.message}<br>
-                            <span class="text-slate-500 font-normal text-xs">Kontrollera att filnamnet är exakt db_master_data.json och ligger i samma mapp som index.html</span>
+                            ERROR: ${err.message}<br>
+                            <span class="text-slate-500 font-normal text-xs">Verify that db_master_data.json exists and has the correct structure.</span>
                         </td>
                     </tr>`;
             }
         }
 
+        /**
+         * Update the top bar with player information
+         */
         function renderPlayerHeader() {
             const p = fullData.player?.data || {};
             document.getElementById('player-name').textContent = p.name || "N/A";
             document.getElementById('player-gp').textContent = Number(p.galactic_power || 0).toLocaleString('sv-SE');
         }
 
+        /**
+         * Build and inject table rows based on character data
+         */
         function renderTable() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
-            // Filter for combat_type 1 (characters)
-            const characters = fullData.units.filter(u => String(u.data.combat_type) === "1");
+            // Filter for combat_type 1 (Characters) with safety check
+            const characters = fullData.units.filter(u => {
+                return u && u.data && String(u.data.combat_type) === "1";
+            });
             
-            // Map Kyro for easy lookup
+            // Map Kyro requirements for easy lookup
             const kyroMap = {};
             if (fullData.kyro?.characters) {
                 fullData.kyro.characters.forEach(c => kyroMap[c.name] = c.total_kyros);
@@ -184,11 +197,11 @@
                 const charId = u.base_id;
                 const charName = cleanCharName(u.name);
                 
-                // Get Mods and Recommendations
-                const charMods = fullData.mods_equipped.filter(m => m.character === charId);
-                const rec = fullData.mods_recommended.find(r => r.base_id === charId);
+                // Extract mods and recommendations
+                const charMods = (fullData.mods_equipped || []).filter(m => m.character === charId);
+                const rec = (fullData.mods_recommended || []).find(r => r.base_id === charId);
 
-                // Extract Specific Stats for Coloring Logic
+                // Extract specific stats for coloring comparison
                 const getStat = (slotId) => charMods.find(m => m.slot == slotId)?.pri_stat || "-";
                 
                 const eq = {
@@ -202,10 +215,10 @@
 
                 const rs = rec?.primaries || {};
 
-                // Helper to determine cell class
+                // Determine cell CSS class based on recommendation match
                 const getCellClass = (slot, eqVal, recVal) => {
                     if (eqVal === "-" || !recVal) return "neutral-cell";
-                    // Normalize names for comparison
+                    // Normalize strings for comparison (e.g. Critical vs Crit)
                     const norm = (s) => s.toLowerCase().replace(/critical/g, 'crit').trim();
                     return norm(eqVal) === norm(recVal) ? "match-green" : "mismatch-red";
                 };
@@ -241,14 +254,13 @@
         }
 
         /**
-         * Table sorting logic
+         * Generic table sorting functionality
          */
         function sortTable(columnIndex) {
-            const table = document.getElementById("master-table");
             const tbody = document.getElementById("table-body");
             const rows = Array.from(tbody.rows);
             
-            // Toggle direction
+            // Toggle sort state
             sortDirections[columnIndex] = !sortDirections[columnIndex];
             const isAsc = sortDirections[columnIndex];
 
@@ -256,7 +268,7 @@
                 let cellA = a.cells[columnIndex].innerText.trim();
                 let cellB = b.cells[columnIndex].innerText.trim();
 
-                // Handle numbers
+                // Numeric sort if applicable
                 const valA = parseFloat(cellA.replace(/[^0-9.]/g, ''));
                 const valB = parseFloat(cellB.replace(/[^0-9.]/g, ''));
                 
@@ -264,13 +276,14 @@
                     return isAsc ? valA - valB : valB - valA;
                 }
 
-                // Handle strings
+                // Default string sort
                 return isAsc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             });
 
             rows.forEach(row => tbody.appendChild(row));
         }
 
+        // Initialize application on load
         window.onload = loadData;
     </script>
 </body>
