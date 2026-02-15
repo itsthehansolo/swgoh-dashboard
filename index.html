@@ -3,121 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWGoH Master Table</title>
+    <title>SWGOH Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #0a0e1a;
-            color: #e2e8f0;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .header-bg { background-color: #0f172a; border-bottom: 1px solid #1e293b; width: 100%; }
+        body { background-color: #0f172a; color: #f1f5f9; }
+        .card { background-color: #1e293b; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         
-        table { width: 100%; border-collapse: collapse; table-layout: auto; }
+        /* Table formatting */
+        table { width: 100%; border-collapse: collapse; }
         th { 
-            background-color: #1f2937; 
-            color: #94a3b8; 
+            background-color: #1e293b; 
+            color: #60a5fa; 
             text-align: left; 
-            padding: 10px; 
-            border: 1px solid #374151;
-            font-size: 0.75rem;
+            padding: 12px 8px; 
+            border: 1px solid #334155;
+            font-size: 0.65rem;
             cursor: pointer;
-            white-space: nowrap;
             text-transform: uppercase;
+            white-space: nowrap;
         }
-        th:hover { background-color: #374151; color: white; }
+        th:hover { background-color: #334155; }
         td { 
-            padding: 8px 10px; 
-            border: 1px solid #1f2937; 
-            font-size: 0.8rem;
+            padding: 6px 8px; 
+            border: 1px solid #1e293b; 
+            font-size: 0.75rem;
             white-space: nowrap;
         }
         
-        .match-green { background-color: #065f46 !important; color: #34d399; }
-        .mismatch-red { background-color: #7f1d1d !important; color: #f87171; }
-        .neutral-cell { background-color: #111827; }
+        /* Mod match coloring */
+        .match-green { background-color: #166534 !important; color: #bbf7d0; }
+        .mismatch-red { background-color: #991b1b !important; color: #fecaca; }
+        .neutral-cell { background-color: #1e293b; }
         
-        tr:hover td { filter: brightness(1.2); }
-        
-        .player-stat { border-right: 1px solid #1e293b; padding: 0 2rem; }
-        .player-stat:last-child { border-right: none; }
+        tr:hover td { background-color: #334155; }
     </style>
 </head>
-<body>
+<body class="p-4">
+    <div class="w-full mx-auto">
+        <header class="mb-8 border-b border-slate-700 pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400">SWGOH Dashboard</h1>
+                <p id="player-summary" class="text-slate-400 mt-2 text-sm uppercase tracking-widest">Laddar spelardata...</p>
+            </div>
+            <div id="data-status" class="text-xs text-slate-500"></div>
+        </header>
 
-    <!-- Top Player Bar -->
-    <div class="header-bg p-4 flex items-center shadow-lg mb-4">
-        <div class="player-stat">
-            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Player</div>
-            <div id="player-name" class="text-xl font-black text-yellow-500">-</div>
-        </div>
-        <div class="player-stat">
-            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Galactic Power</div>
-            <div id="player-gp" class="text-xl font-black text-slate-200">-</div>
-        </div>
-    </div>
+        <main id="app">
+            <div id="status" class="card mb-6">
+                <p class="text-yellow-400">Laddar data från db_master_data.json...</p>
+            </div>
 
-    <!-- Main Table Container -->
-    <div class="w-full overflow-x-auto">
-        <table id="master-table">
-            <thead>
-                <tr id="table-headers">
-                    <th onclick="sortTable(0)">Name</th>
-                    <th onclick="sortTable(1)">Level</th>
-                    <th onclick="sortTable(2)">Stars</th>
-                    <th onclick="sortTable(3)">Gear</th>
-                    <th onclick="sortTable(4)">Set Bonus (E)</th>
-                    <th onclick="sortTable(5)">Arrow</th>
-                    <th onclick="sortTable(6)">Triangle</th>
-                    <th onclick="sortTable(7)">Circle</th>
-                    <th onclick="sortTable(8)">Cross</th>
-                    <th onclick="sortTable(9)">Square</th>
-                    <th onclick="sortTable(10)">Diamond</th>
-                    <th onclick="sortTable(11)">Set Bonus (R)</th>
-                    <th onclick="sortTable(12)">Arrow (R)</th>
-                    <th onclick="sortTable(13)">Triangle (R)</th>
-                    <th onclick="sortTable(14)">Circle (R)</th>
-                    <th onclick="sortTable(15)">Cross (R)</th>
-                    <th onclick="sortTable(16)">Kyro</th>
-                    <th onclick="sortTable(17)">URL</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <!-- Data rows will be injected here -->
-            </tbody>
-        </table>
+            <div id="content" class="hidden">
+                <div class="overflow-x-auto rounded-lg border border-slate-700">
+                    <table id="master-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">Name</th>
+                                <th onclick="sortTable(1)">Level</th>
+                                <th onclick="sortTable(2)">Stars</th>
+                                <th onclick="sortTable(3)">Gear</th>
+                                <th onclick="sortTable(4)">Set Bonus (E)</th>
+                                <th onclick="sortTable(5)">Arrow</th>
+                                <th onclick="sortTable(6)">Triangle</th>
+                                <th onclick="sortTable(7)">Circle</th>
+                                <th onclick="sortTable(8)">Cross</th>
+                                <th onclick="sortTable(9)">Square</th>
+                                <th onclick="sortTable(10)">Diamond</th>
+                                <th onclick="sortTable(11)">Set Bonus (R)</th>
+                                <th onclick="sortTable(12)">Arrow (R)</th>
+                                <th onclick="sortTable(13)">Triangle (R)</th>
+                                <th onclick="sortTable(14)">Circle (R)</th>
+                                <th onclick="sortTable(15)">Cross (R)</th>
+                                <th onclick="sortTable(16)">Kyro</th>
+                                <th onclick="sortTable(17)">URL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        let fullData = null;
-        let sortDirections = {};
+        // Filename for the merged data
+        const DATA_URL = 'db_master_data.json';
+        let masterData = null;
+        let sortOrder = { index: 0, asc: true };
 
-        // Mapping for Mod Set IDs to Names
+        // Mod Set ID Mapping
         const setMap = {
             "1": "Health", "2": "Offense", "3": "Defense", "4": "Speed", 
-            "5": "Crit Chance", "6": "Crit DMG", "7": "Potency", "8": "Tenacity"
+            "5": "Crit Chance", "6": "Potency", "7": "Tenacity", "8": "Crit Damage"
         };
 
         /**
-         * Clean character names: Replace \ with "
+         * Cleans character names: replaces \ with "
          */
-        function cleanCharName(name) {
+        function cleanName(name) {
             if (!name) return "";
             return name.replace(/\\/g, '"');
         }
 
         /**
-         * Calculate Equipped Set Bonus string from mod list
+         * Logic for Gear/Relic display
+         * Shows G1-G13 or R1-R9 (relic_tier - 2)
          */
-        function getEquippedSetBonus(characterId, mods) {
-            if (!mods) return "-";
-            const charMods = mods.filter(m => m.character === characterId);
+        function formatGear(gear, relic) {
+            const g = parseInt(gear);
+            const r = parseInt(relic);
+            if (g === 13 && r >= 3) return `R${r - 2}`;
+            return `G${g}`;
+        }
+
+        /**
+         * Groups equipped sets: "Speed (4) Potency (2)"
+         */
+        function getSetBonus1(charId, mods) {
+            const charMods = mods.filter(m => m.character === charId);
             const counts = {};
             charMods.forEach(m => {
-                const setName = setMap[m.set] || "Unknown";
-                counts[setName] = (counts[setName] || 0) + 1;
+                const name = setMap[m.set] || "Unknown";
+                counts[name] = (counts[name] || 0) + 1;
             });
             return Object.entries(counts)
                 .map(([name, count]) => `${name} (${count})`)
@@ -125,165 +134,138 @@
         }
 
         /**
-         * Calculate Recommended Set Bonus string
+         * Normalizes stat names for comparison (e.g. "Critical Damage" -> "Crit DMG")
          */
-        function getRecommendedSetBonus(rec) {
-            if (!rec || !rec.mod_sets) return "-";
-            return rec.mod_sets.map(s => `${s.set} (${s.count})`).join(" ");
+        function normalizeStat(stat) {
+            if (!stat) return "";
+            return stat.toLowerCase().replace(/critical/g, 'crit').replace(/damage/g, 'dmg').trim();
         }
 
         /**
-         * Fetch and initialize data from JSON file
+         * Determines cell background class based on recommendation match
          */
-        async function loadData() {
-            try {
-                const dataUrl = 'db_master_data.json';
-                const response = await fetch(dataUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`Could not fetch ${dataUrl} (Status: ${response.status})`);
-                }
-                
-                fullData = await response.json();
-                console.log("Data loaded successfully:", fullData); // Debug log
-                
-                if (!fullData.units || !Array.isArray(fullData.units)) {
-                    throw new Error("Invalid JSON structure: 'units' array missing.");
-                }
+        function getModClass(equipped, recommended) {
+            if (equipped === "-" || !recommended) return "neutral-cell";
+            return normalizeStat(equipped) === normalizeStat(recommended) ? "match-green" : "mismatch-red";
+        }
 
-                renderPlayerHeader();
+        async function loadData() {
+            const statusEl = document.getElementById('status');
+            const contentEl = document.getElementById('content');
+            const playerSummary = document.getElementById('player-summary');
+
+            try {
+                const response = await fetch(DATA_URL);
+                if (!response.ok) throw new Error('Could not find db_master_data.json');
+                
+                masterData = await response.json();
+                
+                // Set Player Header
+                const p = masterData.player?.data || {};
+                playerSummary.innerHTML = `${p.name || 'Unknown'} | GP: ${Number(p.galactic_power).toLocaleString('sv-SE')} | Units: ${masterData.units.length}`;
+                
+                document.getElementById('data-status').textContent = `Generated: ${masterData.metadata.generated_at}`;
+
+                statusEl.classList.add('hidden');
+                contentEl.classList.remove('hidden');
+                
                 renderTable();
-            } catch (err) {
-                console.error("Load Error:", err);
-                document.getElementById('table-body').innerHTML = `
-                    <tr>
-                        <td colspan="18" class="text-center p-10 text-rose-500 font-bold">
-                            ERROR: ${err.message}<br>
-                            <span class="text-slate-500 font-normal text-xs">Verify that db_master_data.json exists and has the correct structure.</span>
-                        </td>
-                    </tr>`;
+
+            } catch (error) {
+                statusEl.innerHTML = `<p class="text-red-400">Fel: ${error.message}. Check if db_master_data.json is in the root.</p>`;
             }
         }
 
         /**
-         * Update the top bar with player information
-         */
-        function renderPlayerHeader() {
-            const p = fullData.player?.data || {};
-            document.getElementById('player-name').textContent = p.name || "N/A";
-            document.getElementById('player-gp').textContent = Number(p.galactic_power || 0).toLocaleString('sv-SE');
-        }
-
-        /**
-         * Build and inject table rows based on character data
+         * Builds the main table rows
          */
         function renderTable() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
-            // Filter for combat_type 1 (Characters) with safety check
-            const characters = fullData.units.filter(u => {
-                return u && u.data && String(u.data.combat_type) === "1";
+            // Filter for characters only
+            let characters = masterData.units.filter(u => String(u.data.combat_type) === "1");
+
+            // Sort data based on sortOrder state
+            characters.sort((a, b) => {
+                let valA, valB;
+                const idx = sortOrder.index;
+
+                if (idx === 0) { // Name
+                    valA = cleanName(a.data.name);
+                    valB = cleanName(b.data.name);
+                } else if (idx === 1) { // Level
+                    valA = parseInt(a.data.level);
+                    valB = parseInt(b.data.level);
+                } else if (idx === 16) { // Kyro
+                    valA = masterData.kyro.characters.find(c => c.name === a.data.name)?.total_kyros || 0;
+                    valB = masterData.kyro.characters.find(c => c.name === b.data.name)?.total_kyros || 0;
+                } else {
+                    valA = a.data.name;
+                    valB = b.data.name;
+                }
+
+                if (typeof valA === 'string') {
+                    return sortOrder.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                return sortOrder.asc ? valA - valB : valB - valA;
             });
-            
-            // Map Kyro requirements for easy lookup
-            const kyroMap = {};
-            if (fullData.kyro?.characters) {
-                fullData.kyro.characters.forEach(c => kyroMap[c.name] = c.total_kyros);
-            }
 
             characters.forEach(unit => {
                 const u = unit.data;
                 const charId = u.base_id;
-                const charName = cleanCharName(u.name);
+                const charName = cleanName(u.name);
                 
-                // Extract mods and recommendations
-                const charMods = (fullData.mods_equipped || []).filter(m => m.character === charId);
-                const rec = (fullData.mods_recommended || []).find(r => r.base_id === charId);
+                // Cross-reference data
+                const charMods = masterData.mods_equipped.filter(m => m.character === charId);
+                const rec = masterData.mods_recommended.find(r => r.base_id === charId);
+                const kyro = masterData.kyro.characters.find(c => c.name === u.name)?.total_kyros || 0;
 
-                // Extract specific stats for coloring comparison
-                const getStat = (slotId) => charMods.find(m => m.slot == slotId)?.pri_stat || "-";
-                
-                const eq = {
-                    arrow: getStat(2),
-                    triangle: getStat(4),
-                    circle: getStat(5),
-                    cross: getStat(6),
-                    square: getStat(1),
-                    diamond: getStat(3)
-                };
-
+                // Slot mapping: 2=Arrow, 4=Triangle, 5=Circle, 6=Cross, 1=Square, 3=Diamond
+                const getEq = (slot) => charMods.find(m => m.slot == slot)?.pri_stat || "-";
                 const rs = rec?.primaries || {};
 
-                // Determine cell CSS class based on recommendation match
-                const getCellClass = (slot, eqVal, recVal) => {
-                    if (eqVal === "-" || !recVal) return "neutral-cell";
-                    // Normalize strings for comparison (e.g. Critical vs Crit)
-                    const norm = (s) => s.toLowerCase().replace(/critical/g, 'crit').trim();
-                    return norm(eqVal) === norm(recVal) ? "match-green" : "mismatch-red";
-                };
-
                 const row = document.createElement('tr');
-                row.className = "hover:bg-slate-800/40";
-                
-                const relicText = u.relic_tier > 2 ? ` / R${u.relic_tier - 2}` : '';
-                const kyroVal = kyroMap[u.name] || 0;
-
                 row.innerHTML = `
-                    <td class="font-bold">${charName}</td>
+                    <td class="font-bold text-blue-300">${charName}</td>
                     <td class="text-center">${u.level}</td>
-                    <td class="text-center text-yellow-500 font-bold">${u.rarity}★</td>
-                    <td class="text-center">${u.gear_level}${relicText}</td>
-                    <td class="text-xs">${getEquippedSetBonus(charId, fullData.mods_equipped)}</td>
-                    <td class="${getCellClass('arrow', eq.arrow, rs.arrow)}">${eq.arrow}</td>
-                    <td class="${getCellClass('triangle', eq.triangle, rs.triangle)}">${eq.triangle}</td>
-                    <td class="${getCellClass('circle', eq.circle, rs.circle)}">${eq.circle}</td>
-                    <td class="${getCellClass('cross', eq.cross, rs.cross)}">${eq.cross}</td>
-                    <td class="neutral-cell">${eq.square}</td>
-                    <td class="neutral-cell">${eq.diamond}</td>
-                    <td class="text-xs text-slate-400">${getRecommendedSetBonus(rec)}</td>
-                    <td class="text-slate-400">${rs.arrow || "-"}</td>
-                    <td class="text-slate-400">${rs.triangle || "-"}</td>
-                    <td class="text-slate-400">${rs.circle || "-"}</td>
-                    <td class="text-slate-400">${rs.cross || "-"}</td>
-                    <td class="text-right text-sky-400 font-mono">${kyroVal}</td>
-                    <td><a href="${rec?.url || '#'}" target="_blank" class="text-yellow-500 underline hover:text-yellow-400">url</a></td>
+                    <td class="text-center text-yellow-500">${u.rarity}★</td>
+                    <td class="text-center font-bold text-slate-200">${formatGear(u.gear_level, u.relic_tier)}</td>
+                    <td class="text-[10px] text-slate-400">${getSetBonus1(charId, masterData.mods_equipped)}</td>
+                    
+                    <td class="${getModClass(getEq(2), rs.arrow)}">${getEq(2)}</td>
+                    <td class="${getModClass(getEq(4), rs.triangle)}">${getEq(4)}</td>
+                    <td class="${getModClass(getEq(5), rs.circle)}">${getEq(5)}</td>
+                    <td class="${getModClass(getEq(6), rs.cross)}">${getEq(6)}</td>
+                    <td class="neutral-cell">${getEq(1)}</td>
+                    <td class="neutral-cell">${getEq(3)}</td>
+                    
+                    <td class="text-[10px] text-blue-400/60">${rec ? rec.mod_sets.map(s => `${s.set} (${s.count})`).join(" ") : "-"}</td>
+                    <td class="text-slate-500">${rs.arrow || "-"}</td>
+                    <td class="text-slate-500">${rs.triangle || "-"}</td>
+                    <td class="text-slate-500">${rs.circle || "-"}</td>
+                    <td class="text-slate-500">${rs.cross || "-"}</td>
+                    
+                    <td class="text-center text-orange-400 font-mono font-bold">${kyro}</td>
+                    <td><a href="${rec?.url || '#'}" target="_blank" class="text-blue-400 underline hover:text-blue-200">url</a></td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
         /**
-         * Generic table sorting functionality
+         * Sort handler triggered by header click
          */
-        function sortTable(columnIndex) {
-            const tbody = document.getElementById("table-body");
-            const rows = Array.from(tbody.rows);
-            
-            // Toggle sort state
-            sortDirections[columnIndex] = !sortDirections[columnIndex];
-            const isAsc = sortDirections[columnIndex];
-
-            rows.sort((a, b) => {
-                let cellA = a.cells[columnIndex].innerText.trim();
-                let cellB = b.cells[columnIndex].innerText.trim();
-
-                // Numeric sort if applicable
-                const valA = parseFloat(cellA.replace(/[^0-9.]/g, ''));
-                const valB = parseFloat(cellB.replace(/[^0-9.]/g, ''));
-                
-                if (!isNaN(valA) && !isNaN(valB)) {
-                    return isAsc ? valA - valB : valB - valA;
-                }
-
-                // Default string sort
-                return isAsc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
-            });
-
-            rows.forEach(row => tbody.appendChild(row));
+        function sortTable(index) {
+            if (sortOrder.index === index) {
+                sortOrder.asc = !sortOrder.asc;
+            } else {
+                sortOrder.index = index;
+                sortOrder.asc = true;
+            }
+            renderTable();
         }
 
-        // Initialize application on load
         window.onload = loadData;
     </script>
 </body>
