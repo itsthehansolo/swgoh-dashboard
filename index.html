@@ -52,11 +52,10 @@
             <div class="flex items-center gap-8">
                 <h1 class="text-3xl font-black text-swgoh-orange tracking-tighter">SWGHDash</h1>
                 <div id="header-stats" class="flex gap-6 text-[11px] uppercase tracking-wider font-bold">
-                    <!-- Dynamic Header Stats go here -->
+                    <!-- Dynamic Header Stats -->
                 </div>
             </div>
             
-            <!-- Search Bar -->
             <div class="relative">
                 <input type="text" id="char-search" placeholder="Search Characters..." 
                        class="bg-slate-800 border border-slate-700 rounded-md px-4 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500/50 w-64 placeholder-slate-500">
@@ -68,42 +67,52 @@
     <div class="bg-dark-menu shadow-md">
         <div class="master-container">
             <nav id="top-menu" class="flex items-center gap-1 text-sm font-medium py-2">
-                <!-- Dynamic Menu Links go here -->
+                <!-- Dynamic Menu Links -->
             </nav>
         </div>
     </div>
 
     <!-- Table Section -->
     <main class="master-container mt-8">
+        <!-- Error Diagnostics Box -->
+        <div id="error-display" class="hidden bg-red-900/20 border border-red-500/50 text-red-200 p-6 rounded-lg mb-6 shadow-lg">
+            <h2 class="font-bold text-lg mb-2 flex items-center gap-2">
+                <span>⚠️</span> Data Load Error
+            </h2>
+            <div id="error-message" class="text-sm space-y-2"></div>
+            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-colors">
+                RETRY / REFRESH
+            </button>
+        </div>
+
         <div class="bg-dark-header rounded-t-lg border border-slate-custom overflow-hidden shadow-2xl">
             <div class="overflow-x-auto no-scrollbar">
                 <table class="w-full text-left">
                     <thead>
                         <tr id="table-headers">
-                            <!-- Headers generated from JSON units -->
+                            <!-- Headers generated from JSON -->
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        <!-- Unit rows generated from JSON -->
+                        <tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Initializing dashboard...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <!-- Footer Info -->
         <footer class="mt-8 mb-12 text-center">
             <div id="build-info" class="text-[10px] font-mono text-slate-600 uppercase tracking-[0.2em]"></div>
         </footer>
     </main>
 
     <script>
-        // Updated path to reflect that the JSON is in the same directory as index.html
-        const DATA_PATH = 'db_master_data.json';
+        // Use relative path for GitHub Pages compatibility
+        const DATA_FILE = 'db_master_data.json';
         let fullUnitsData = [];
         let sortState = { key: 'name', desc: false };
 
         /**
-         * Cleans values for comparison (handles case insensitivity)
+         * Standardizes text for comparison (English terms)
          */
         function normalize(val) {
             if (!val || val === "-") return "";
@@ -114,7 +123,7 @@
         }
 
         /**
-         * Comparison logic for coloring mod cells
+         * Determines cell background color based on recommended mods
          */
         function getCellClass(value, key, unit) {
             const modMap = {
@@ -131,20 +140,46 @@
         }
 
         /**
-         * Fetches data and initializes UI
+         * Renders error details to the UI
+         */
+        function showError(title, details) {
+            const errDiv = document.getElementById('error-display');
+            const errMsg = document.getElementById('error-message');
+            errDiv.classList.remove('hidden');
+            errMsg.innerHTML = `
+                <p class="font-bold text-red-400">${title}</p>
+                <div class="bg-black/30 p-3 rounded font-mono text-xs mt-2 overflow-x-auto">
+                    ${details}
+                </div>
+                <p class="mt-2 text-xs text-slate-400 italic">Tip: Check if the filename is case-sensitive (GitHub is case-sensitive).</p>
+            `;
+        }
+
+        /**
+         * Main initialization function
          */
         async function init() {
+            // Absolute URL for diagnostics
+            const fullUrl = new URL(DATA_FILE, window.location.href).href;
+
             try {
-                const response = await fetch(DATA_PATH);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const response = await fetch(DATA_FILE);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}<br>Attempted URL: ${fullUrl}`);
+                }
                 
                 const data = await response.json();
-                const meta = data.metadata;
+                
+                if (!data.metadata || !data.units) {
+                    throw new Error(`Invalid JSON structure: Missing 'metadata' or 'units' keys.`);
+                }
 
-                // Set Favicon from metadata
+                // UI Updates
+                const meta = data.metadata;
                 if (meta.favicon) document.getElementById('favicon').href = meta.favicon;
 
-                // Render Header Stats
+                // Stats rendering
                 const statsDiv = document.getElementById('header-stats');
                 statsDiv.innerHTML = meta.header.map(s => `
                     <div class="flex gap-2">
@@ -153,7 +188,7 @@
                     </div>
                 `).join('');
 
-                // Render Menu
+                // Menu rendering
                 const menuNav = document.getElementById('top-menu');
                 menuNav.innerHTML = meta.menu.map((m, idx) => `
                     ${idx > 0 ? '<span class="text-slate-600 px-1">|</span>' : ''}
@@ -164,7 +199,7 @@
 
                 fullUnitsData = data.units;
 
-                // Initial Sort: Name A-Z (0 before A)
+                // Initial sort
                 fullUnitsData.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true }));
 
                 if (fullUnitsData.length > 0) {
@@ -172,7 +207,7 @@
                     renderTable(fullUnitsData);
                 }
 
-                // Search Event
+                // Search functionality
                 document.getElementById('char-search').addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
                     const filtered = fullUnitsData.filter(u => u.name.toLowerCase().includes(term));
@@ -180,11 +215,15 @@
                 });
 
             } catch (err) {
-                console.error("Initialization failed:", err);
-                document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-red-500">Could not find ${DATA_PATH}</td></tr>`;
+                console.error("Fetch Error:", err);
+                showError("Failed to fetch or parse data", err.message || "Unknown error");
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-600 italic text-sm">No data available.</td></tr>`;
             }
         }
 
+        /**
+         * Creates dynamic table headers
+         */
         function createHeaders(exampleUnit) {
             const row = document.getElementById('table-headers');
             row.innerHTML = '';
@@ -196,6 +235,9 @@
             });
         }
 
+        /**
+         * Renders the data rows
+         */
         function renderTable(units) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -207,12 +249,10 @@
                     const colorClass = getCellClass(val, key, u);
                     if (colorClass) td.className = colorClass;
 
-                    // Specific column styling
                     if (key === "name") td.classList.add("text-blue-400", "font-medium");
                     if (["level", "stars", "gear"].includes(key.toLowerCase())) td.classList.add("text-center");
                     if (key === "kyro") td.classList.add("text-center", "text-orange-400", "font-mono");
 
-                    // Render content
                     if (key.toLowerCase() === "url") {
                         td.innerHTML = `<a href="${val}" target="_blank" class="text-slate-500 hover:text-swgoh-orange transition-colors">🔗</a>`;
                     } else {
@@ -224,6 +264,9 @@
             });
         }
 
+        /**
+         * Handles column sorting
+         */
         function handleSort(key) {
             sortState.desc = (sortState.key === key) ? !sortState.desc : false;
             sortState.key = key;
