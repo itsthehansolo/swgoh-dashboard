@@ -97,6 +97,7 @@
     </main>
 
     <script>
+        // Updated path to reflect that the JSON is in the same directory as index.html
         const DATA_PATH = 'db_master_data.json';
         let fullUnitsData = [];
         let sortState = { key: 'name', desc: false };
@@ -135,6 +136,8 @@
         async function init() {
             try {
                 const response = await fetch(DATA_PATH);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
                 const data = await response.json();
                 const meta = data.metadata;
 
@@ -178,7 +181,7 @@
 
             } catch (err) {
                 console.error("Initialization failed:", err);
-                document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-red-500">Could not find db_master_data.json</td></tr>`;
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-red-500">Could not find ${DATA_PATH}</td></tr>`;
             }
         }
 
