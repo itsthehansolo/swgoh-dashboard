@@ -1,8 +1,8 @@
 {
     "metadata": {
-        "generated_at": "2026-02-17 01:12:04",
+        "generated_at": "2026-02-17 07:55:48",
         "player_name": "Unknown",
-        "ally_code": "123456789",
+        "ally_code": "149792638",
         "galactic_power": "2499066"
     },
     "units": [
@@ -1447,7 +1447,7 @@
             "url": "https://swgoh.gg/units/kylo-ren/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "CT-5555 \\Fives\\",
+            "name": "CT-5555 \"Fives\"",
             "level": "85",
             "stars": "7",
             "gear": "G12",
@@ -1463,7 +1463,7 @@
             "triangle(r)": "Protection",
             "circle(r)": "Protection",
             "cross(r)": "Protection",
-            "kyro": "-",
+            "kyro": 100,
             "url": "https://swgoh.gg/units/ct-5555-fives/best-mods/?s=GUILDTOP100"
         },
         {
@@ -2507,7 +2507,7 @@
             "url": "https://swgoh.gg/units/greef-karga/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "Garazeb \\Zeb\\ Orrelios",
+            "name": "Garazeb \"Zeb\" Orrelios",
             "level": "85",
             "stars": "7",
             "gear": "G8",
@@ -2523,11 +2523,11 @@
             "triangle(r)": "Critical Damage",
             "circle(r)": "Protection",
             "cross(r)": "Potency",
-            "kyro": "-",
+            "kyro": 100,
             "url": "https://swgoh.gg/units/garazeb-zeb-orrelios/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "CT-21-0408 \\Echo\\",
+            "name": "CT-21-0408 \"Echo\"",
             "level": "80",
             "stars": "5",
             "gear": "G8",
@@ -2543,7 +2543,7 @@
             "triangle(r)": "Critical Damage",
             "circle(r)": "Health",
             "cross(r)": "Offense",
-            "kyro": "-",
+            "kyro": 100,
             "url": "https://swgoh.gg/units/ct-21-0408-echo/best-mods/?s=GUILDTOP100"
         },
         {
@@ -2767,7 +2767,7 @@
             "url": "https://swgoh.gg/units/hoth-rebel-scout/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "CC-1119 \\Appo\\",
+            "name": "CC-1119 \"Appo\"",
             "level": "1",
             "stars": "2",
             "gear": "G1",
@@ -2783,7 +2783,7 @@
             "triangle(r)": "Critical Damage",
             "circle(r)": "Protection",
             "cross(r)": "Offense",
-            "kyro": "-",
+            "kyro": 400,
             "url": "https://swgoh.gg/units/cc-1119-appo/best-mods/?s=GUILDTOP100"
         },
         {
@@ -3047,7 +3047,7 @@
             "url": "https://swgoh.gg/units/mother-talzin/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "CC-2224 \\Cody\\",
+            "name": "CC-2224 \"Cody\"",
             "level": "80",
             "stars": "5",
             "gear": "G8",
@@ -3063,7 +3063,7 @@
             "triangle(r)": "Critical Chance",
             "circle(r)": "Protection",
             "cross(r)": "Offense",
-            "kyro": "-",
+            "kyro": 100,
             "url": "https://swgoh.gg/units/cc-2224-cody/best-mods/?s=GUILDTOP100"
         },
         {
@@ -3607,7 +3607,7 @@
             "url": "https://swgoh.gg/units/chief-chirpa/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "RC-1262 \\Scorch\\",
+            "name": "RC-1262 \"Scorch\"",
             "level": "1",
             "stars": "2",
             "gear": "G1",
@@ -3623,7 +3623,7 @@
             "triangle(r)": "Protection",
             "circle(r)": "Protection",
             "cross(r)": "Protection",
-            "kyro": "-",
+            "kyro": 400,
             "url": "https://swgoh.gg/units/rc-1262-scorch/best-mods/?s=GUILDTOP100"
         },
         {
@@ -4347,7 +4347,7 @@
             "url": "https://swgoh.gg/units/biggs-darklighter/best-mods/?s=GUILDTOP100"
         },
         {
-            "name": "CT-7567 \\Rex\\",
+            "name": "CT-7567 \"Rex\"",
             "level": "85",
             "stars": "6",
             "gear": "G11",
@@ -4363,7 +4363,7 @@
             "triangle(r)": "Health",
             "circle(r)": "Health",
             "cross(r)": "Health",
-            "kyro": "-",
+            "kyro": 100,
             "url": "https://swgoh.gg/units/ct-7567-rex/best-mods/?s=GUILDTOP100"
         },
         {
