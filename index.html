@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWGHDash</title>
+    <title>SWGH Dash</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f1f5f9; margin: 0; padding: 0; font-family: sans-serif; }
@@ -69,12 +69,12 @@
                     <th onclick="sortTable('stars')">Stars</th>
                     <th onclick="sortTable('gear')">Gear</th>
                     <th onclick="sortTable('set bonus')">Set</th>
+                    <th onclick="sortTable('square')">Square</th>
                     <th onclick="sortTable('arrow')">Arrow</th>
+                    <th onclick="sortTable('diamond')">Diamond</th>
                     <th onclick="sortTable('triangle')">Triangle</th>
                     <th onclick="sortTable('circle')">Circle</th>
                     <th onclick="sortTable('cross')">Cross</th>
-                    <th onclick="sortTable('square')">Square</th>
-                    <th onclick="sortTable('diamond')">Diamond</th>
                     <th onclick="sortTable('rec bonus')">Rec Set</th>
                     <th onclick="sortTable('arrow(r)')">Arrow(r)</th>
                     <th onclick="sortTable('triangle(r)')">Tri(r)</th>
@@ -161,12 +161,12 @@
                     { key: "stars", class: "text-center font-bold" },
                     { key: "gear", class: "text-center font-bold text-slate-200" },
                     { key: "set bonus", class: "text-[10px] text-slate-400" },
+                    { key: "square", class: "neutral-cell" },
                     { key: "arrow", compare: "arrow" },
+                    { key: "diamond", class: "neutral-cell" },
                     { key: "triangle", compare: "triangle" },
                     { key: "circle", compare: "circle" },
                     { key: "cross", compare: "cross" },
-                    { key: "square", class: "neutral-cell" },
-                    { key: "diamond", class: "neutral-cell" },
                     { key: "rec bonus", class: "text-[10px] text-blue-400/50" },
                     { key: "arrow(r)", class: "text-slate-500" },
                     { key: "triangle(r)", class: "text-slate-500" },
