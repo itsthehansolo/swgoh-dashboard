@@ -52,7 +52,7 @@
             <div class="flex items-center gap-8">
                 <h1 class="text-3xl font-black text-swgoh-orange tracking-tighter">SWGHDash</h1>
                 <div id="header-stats" class="flex gap-6 text-[11px] uppercase tracking-wider font-bold">
-                    <!-- Dynamic Header Stats -->
+                    <span class="text-slate-600">Väntar på data...</span>
                 </div>
             </div>
             
@@ -67,21 +67,22 @@
     <div class="bg-dark-menu shadow-md">
         <div class="master-container">
             <nav id="top-menu" class="flex items-center gap-1 text-sm font-medium py-2">
-                <!-- Dynamic Menu Links -->
+                <span class="text-slate-600">Ingen meny tillgänglig</span>
             </nav>
         </div>
     </div>
 
     <!-- Table Section -->
     <main class="master-container mt-8">
-        <!-- Error Diagnostics Box -->
+        <!-- Enhanced Error Box -->
         <div id="error-display" class="hidden bg-red-900/20 border border-red-500/50 text-red-200 p-6 rounded-lg mb-6 shadow-lg">
             <h2 class="font-bold text-lg mb-2 flex items-center gap-2">
-                <span>⚠️</span> Data Load Error
+                <span>⚠️</span> Inläsningsfel
             </h2>
             <div id="error-message" class="text-sm space-y-2"></div>
+            <div id="debug-info" class="mt-4 p-3 bg-black/40 rounded font-mono text-[10px] text-red-300 hidden"></div>
             <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-colors">
-                RETRY / REFRESH
+                FÖRSÖK IGEN
             </button>
         </div>
 
@@ -94,7 +95,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        <tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Initializing dashboard...</td></tr>
+                        <tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Initierar dashboard...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -106,13 +107,13 @@
     </main>
 
     <script>
-        // Data file path
+        // Constants
         const DATA_FILE = 'db_master_data.json';
         let fullUnitsData = [];
         let sortState = { key: 'name', desc: false };
 
         /**
-         * Normalizes strings for comparison
+         * Normalize text for comparison logic
          */
         function normalize(val) {
             if (!val || val === "-") return "";
@@ -123,7 +124,7 @@
         }
 
         /**
-         * Logic for highlighting recommended vs current mods
+         * Logic to highlight mod mismatches
          */
         function getCellClass(value, key, unit) {
             const modMap = {
@@ -140,124 +141,132 @@
         }
 
         /**
-         * Displays error details in the UI
+         * Detailed error reporting
          */
-        function showError(title, details) {
-            const errDiv = document.getElementById('error-display');
-            const errMsg = document.getElementById('error-message');
-            errDiv.classList.remove('hidden');
-            errMsg.innerHTML = `
-                <p class="font-bold text-red-400">${title}</p>
-                <div class="bg-black/30 p-3 rounded font-mono text-xs mt-2 overflow-x-auto whitespace-pre-wrap">
-                    ${details}
-                </div>
-            `;
-        }
-
-        /**
-         * Main initialization and data fetching
-         */
-        async function init() {
-            try {
-                const response = await fetch(DATA_FILE + '?nocache=' + Date.now());
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: File not found or inaccessible.`);
-                }
-                
-                const data = await response.json();
-                
-                // Validate top level structure
-                if (!data || typeof data !== 'object') throw new Error("JSON is not an object.");
-                if (!data.metadata) throw new Error("Missing 'metadata' object in JSON.");
-                if (!data.units || !Array.isArray(data.units)) throw new Error("Missing 'units' array in JSON.");
-
-                const meta = data.metadata;
-                
-                // Set favicon if exists
-                if (meta.favicon) document.getElementById('favicon').href = meta.favicon;
-
-                // Render Header Stats with safety check for .map()
-                const statsDiv = document.getElementById('header-stats');
-                const headerData = Array.isArray(meta.header) ? meta.header : [];
-                statsDiv.innerHTML = headerData.map(s => `
-                    <div class="flex gap-2">
-                        <span class="text-slate-500">${s.label || 'Stat'}</span>
-                        <span class="text-swgoh-orange">${isNaN(s.value) ? (s.value || 0) : Number(s.value).toLocaleString()}</span>
-                    </div>
-                `).join('');
-
-                // Render Menu with safety check for .map()
-                const menuNav = document.getElementById('top-menu');
-                const menuData = Array.isArray(meta.menu) ? meta.menu : [];
-                menuNav.innerHTML = menuData.map((m, idx) => `
-                    ${idx > 0 ? '<span class="text-slate-600 px-1">|</span>' : ''}
-                    <a href="${m.url || '#'}" target="_blank" class="px-2 py-1 hover:text-swgoh-orange transition-colors">${m.label || 'Link'}</a>
-                `).join('');
-
-                // Display build info
-                const timestamp = meta.generated_at ? meta.generated_at.replace(/[: -]/g, '').slice(2) : 'unknown';
-                document.getElementById('build-info').textContent = `build_${timestamp}`;
-
-                fullUnitsData = data.units;
-
-                // Initial Sort
-                fullUnitsData.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true }));
-
-                if (fullUnitsData.length > 0) {
-                    createHeaders(fullUnitsData[0]);
-                    renderTable(fullUnitsData);
-                } else {
-                    document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-500 italic">The 'units' array is empty.</td></tr>`;
-                }
-
-                // Search Event
-                document.getElementById('char-search').addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase();
-                    const filtered = fullUnitsData.filter(u => (u.name || "").toLowerCase().includes(term));
-                    renderTable(filtered);
-                });
-
-            } catch (err) {
-                console.error("Critical Failure:", err);
-                showError("JSON Structure Error", `Message: ${err.message}\n\nCheck your db_master_data.json file structure.`);
+        function showError(msg, debug = null) {
+            document.getElementById('error-display').classList.remove('hidden');
+            document.getElementById('error-message').textContent = msg;
+            if (debug) {
+                const debugDiv = document.getElementById('debug-info');
+                debugDiv.classList.remove('hidden');
+                debugDiv.textContent = `Debug Info: ${JSON.stringify(debug, null, 2)}`;
             }
         }
 
         /**
-         * Creates headers based on keys in the first unit
+         * Main Data Loading Logic
          */
-        function createHeaders(exampleUnit) {
+        async function init() {
+            try {
+                // Add timestamp to prevent caching issues on GitHub
+                const response = await fetch(DATA_FILE + '?v=' + Date.now());
+                
+                if (!response.ok) {
+                    throw new Error(`Kunde inte hitta ${DATA_FILE} (HTTP ${response.status})`);
+                }
+                
+                const data = await response.json();
+                
+                // Integrity check
+                if (!data || typeof data !== 'object') throw new Error("JSON-filen är inte ett giltigt objekt.");
+                if (!data.units || !Array.isArray(data.units)) throw new Error("Fältet 'units' saknas eller är inte en lista.");
+
+                const meta = data.metadata || {};
+                
+                // Render Favicon
+                if (meta.favicon) document.getElementById('favicon').href = meta.favicon;
+
+                // Render Header Stats with defaults
+                const statsDiv = document.getElementById('header-stats');
+                const headerItems = Array.isArray(meta.header) ? meta.header : [];
+                if (headerItems.length > 0) {
+                    statsDiv.innerHTML = headerItems.map(s => `
+                        <div class="flex gap-2">
+                            <span class="text-slate-500">${s.label || ''}</span>
+                            <span class="text-swgoh-orange">${isNaN(s.value) ? (s.value || '0') : Number(s.value).toLocaleString()}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Render Menu with defaults
+                const menuNav = document.getElementById('top-menu');
+                const menuItems = Array.isArray(meta.menu) ? meta.menu : [];
+                if (menuItems.length > 0) {
+                    menuNav.innerHTML = menuItems.map((m, idx) => `
+                        ${idx > 0 ? '<span class="text-slate-600 px-1">|</span>' : ''}
+                        <a href="${m.url || '#'}" target="_blank" class="px-2 py-1 hover:text-swgoh-orange transition-colors">${m.label || 'Länk'}</a>
+                    `).join('');
+                }
+
+                // Build info
+                const buildTime = meta.generated_at ? meta.generated_at.replace(/[: -]/g, '').slice(2) : 'local';
+                document.getElementById('build-info').textContent = `v2.0_${buildTime}`;
+
+                fullUnitsData = data.units;
+
+                // Create table structure
+                if (fullUnitsData.length > 0) {
+                    // Collect ALL unique keys from all units to ensure no columns are missed
+                    const allKeys = new Set();
+                    fullUnitsData.forEach(u => Object.keys(u).forEach(k => allKeys.add(k)));
+                    createHeaders(Array.from(allKeys));
+                    
+                    // Sort by name as default
+                    fullUnitsData.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true }));
+                    renderTable(fullUnitsData, Array.from(allKeys));
+                } else {
+                    document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Ingen data hittades i 'units'.</td></tr>`;
+                }
+
+                // Search handler
+                document.getElementById('char-search').addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const filtered = fullUnitsData.filter(u => (u.name || "").toLowerCase().includes(term));
+                    const currentKeys = Array.from(new Set(fullUnitsData.flatMap(u => Object.keys(u))));
+                    renderTable(filtered, currentKeys);
+                });
+
+            } catch (err) {
+                console.error("Initialization Failed:", err);
+                showError("Ett fel uppstod vid bearbetning av data.", err.message);
+            }
+        }
+
+        /**
+         * Generates table headers from key list
+         */
+        function createHeaders(keys) {
             const row = document.getElementById('table-headers');
             row.innerHTML = '';
-            Object.keys(exampleUnit).forEach(key => {
+            keys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
-                th.onclick = () => handleSort(key);
+                th.onclick = () => handleSort(key, keys);
                 row.appendChild(th);
             });
         }
 
         /**
-         * Populates the table with unit data
+         * Renders table rows based on filtered/sorted data
          */
-        function renderTable(units) {
+        function renderTable(units, keys) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
             units.forEach(u => {
                 const tr = document.createElement('tr');
-                Object.entries(u).forEach(([key, val]) => {
+                keys.forEach(key => {
                     const td = document.createElement('td');
+                    const val = u[key];
                     const colorClass = getCellClass(val, key, u);
                     if (colorClass) td.className = colorClass;
 
-                    if (key === "name") td.classList.add("text-blue-400", "font-medium");
-                    if (["level", "stars", "gear"].includes(key.toLowerCase())) td.classList.add("text-center");
-                    if (key === "kyro") td.classList.add("text-center", "text-orange-400", "font-mono");
-
+                    // Specific styling for certain columns
+                    if (key.toLowerCase() === "name") td.classList.add("text-blue-400", "font-medium");
+                    if (key.toLowerCase() === "kyro") td.classList.add("text-center", "text-orange-400", "font-mono");
+                    
                     if (key.toLowerCase() === "url") {
-                        td.innerHTML = `<a href="${val}" target="_blank" class="text-slate-500 hover:text-swgoh-orange transition-colors">🔗</a>`;
+                        td.innerHTML = val ? `<a href="${val}" target="_blank" class="text-slate-500 hover:text-swgoh-orange transition-colors">🔗</a>` : "-";
                     } else {
                         td.textContent = (val === undefined || val === null) ? "-" : val;
                     }
@@ -268,9 +277,9 @@
         }
 
         /**
-         * Sorting logic for column headers
+         * Column sorting handler
          */
-        function handleSort(key) {
+        function handleSort(key, keys) {
             sortState.desc = (sortState.key === key) ? !sortState.desc : false;
             sortState.key = key;
 
@@ -282,7 +291,7 @@
                     : parseFloat(v1) - parseFloat(v2);
                 return sortState.desc ? res * -1 : res;
             });
-            renderTable(fullUnitsData);
+            renderTable(fullUnitsData, keys);
         }
 
         window.onload = init;
