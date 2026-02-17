@@ -106,13 +106,13 @@
     </main>
 
     <script>
-        // Use relative path for GitHub Pages compatibility
+        // Data file path
         const DATA_FILE = 'db_master_data.json';
         let fullUnitsData = [];
         let sortState = { key: 'name', desc: false };
 
         /**
-         * Standardizes text for comparison (English terms)
+         * Normalizes strings for comparison
          */
         function normalize(val) {
             if (!val || val === "-") return "";
@@ -123,7 +123,7 @@
         }
 
         /**
-         * Determines cell background color based on recommended mods
+         * Logic for highlighting recommended vs current mods
          */
         function getCellClass(value, key, unit) {
             const modMap = {
@@ -140,7 +140,7 @@
         }
 
         /**
-         * Renders error details to the UI
+         * Displays error details in the UI
          */
         function showError(title, details) {
             const errDiv = document.getElementById('error-display');
@@ -148,81 +148,84 @@
             errDiv.classList.remove('hidden');
             errMsg.innerHTML = `
                 <p class="font-bold text-red-400">${title}</p>
-                <div class="bg-black/30 p-3 rounded font-mono text-xs mt-2 overflow-x-auto">
+                <div class="bg-black/30 p-3 rounded font-mono text-xs mt-2 overflow-x-auto whitespace-pre-wrap">
                     ${details}
                 </div>
-                <p class="mt-2 text-xs text-slate-400 italic">Tip: Check if the filename is case-sensitive (GitHub is case-sensitive).</p>
             `;
         }
 
         /**
-         * Main initialization function
+         * Main initialization and data fetching
          */
         async function init() {
-            // Absolute URL for diagnostics
-            const fullUrl = new URL(DATA_FILE, window.location.href).href;
-
             try {
-                const response = await fetch(DATA_FILE);
+                const response = await fetch(DATA_FILE + '?nocache=' + Date.now());
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}<br>Attempted URL: ${fullUrl}`);
+                    throw new Error(`HTTP ${response.status}: File not found or inaccessible.`);
                 }
                 
                 const data = await response.json();
                 
-                if (!data.metadata || !data.units) {
-                    throw new Error(`Invalid JSON structure: Missing 'metadata' or 'units' keys.`);
-                }
+                // Validate top level structure
+                if (!data || typeof data !== 'object') throw new Error("JSON is not an object.");
+                if (!data.metadata) throw new Error("Missing 'metadata' object in JSON.");
+                if (!data.units || !Array.isArray(data.units)) throw new Error("Missing 'units' array in JSON.");
 
-                // UI Updates
                 const meta = data.metadata;
+                
+                // Set favicon if exists
                 if (meta.favicon) document.getElementById('favicon').href = meta.favicon;
 
-                // Stats rendering
+                // Render Header Stats with safety check for .map()
                 const statsDiv = document.getElementById('header-stats');
-                statsDiv.innerHTML = meta.header.map(s => `
+                const headerData = Array.isArray(meta.header) ? meta.header : [];
+                statsDiv.innerHTML = headerData.map(s => `
                     <div class="flex gap-2">
-                        <span class="text-slate-500">${s.label}</span>
-                        <span class="text-swgoh-orange">${isNaN(s.value) ? s.value : Number(s.value).toLocaleString()}</span>
+                        <span class="text-slate-500">${s.label || 'Stat'}</span>
+                        <span class="text-swgoh-orange">${isNaN(s.value) ? (s.value || 0) : Number(s.value).toLocaleString()}</span>
                     </div>
                 `).join('');
 
-                // Menu rendering
+                // Render Menu with safety check for .map()
                 const menuNav = document.getElementById('top-menu');
-                menuNav.innerHTML = meta.menu.map((m, idx) => `
+                const menuData = Array.isArray(meta.menu) ? meta.menu : [];
+                menuNav.innerHTML = menuData.map((m, idx) => `
                     ${idx > 0 ? '<span class="text-slate-600 px-1">|</span>' : ''}
-                    <a href="${m.url}" target="_blank" class="px-2 py-1 hover:text-swgoh-orange transition-colors">${m.label}</a>
+                    <a href="${m.url || '#'}" target="_blank" class="px-2 py-1 hover:text-swgoh-orange transition-colors">${m.label || 'Link'}</a>
                 `).join('');
 
-                document.getElementById('build-info').textContent = `build_${meta.generated_at.replace(/[: -]/g, '').slice(2)}`;
+                // Display build info
+                const timestamp = meta.generated_at ? meta.generated_at.replace(/[: -]/g, '').slice(2) : 'unknown';
+                document.getElementById('build-info').textContent = `build_${timestamp}`;
 
                 fullUnitsData = data.units;
 
-                // Initial sort
-                fullUnitsData.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true }));
+                // Initial Sort
+                fullUnitsData.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true }));
 
                 if (fullUnitsData.length > 0) {
                     createHeaders(fullUnitsData[0]);
                     renderTable(fullUnitsData);
+                } else {
+                    document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-500 italic">The 'units' array is empty.</td></tr>`;
                 }
 
-                // Search functionality
+                // Search Event
                 document.getElementById('char-search').addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
-                    const filtered = fullUnitsData.filter(u => u.name.toLowerCase().includes(term));
+                    const filtered = fullUnitsData.filter(u => (u.name || "").toLowerCase().includes(term));
                     renderTable(filtered);
                 });
 
             } catch (err) {
-                console.error("Fetch Error:", err);
-                showError("Failed to fetch or parse data", err.message || "Unknown error");
-                document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-600 italic text-sm">No data available.</td></tr>`;
+                console.error("Critical Failure:", err);
+                showError("JSON Structure Error", `Message: ${err.message}\n\nCheck your db_master_data.json file structure.`);
             }
         }
 
         /**
-         * Creates dynamic table headers
+         * Creates headers based on keys in the first unit
          */
         function createHeaders(exampleUnit) {
             const row = document.getElementById('table-headers');
@@ -236,7 +239,7 @@
         }
 
         /**
-         * Renders the data rows
+         * Populates the table with unit data
          */
         function renderTable(units) {
             const tbody = document.getElementById('table-body');
@@ -256,7 +259,7 @@
                     if (key.toLowerCase() === "url") {
                         td.innerHTML = `<a href="${val}" target="_blank" class="text-slate-500 hover:text-swgoh-orange transition-colors">🔗</a>`;
                     } else {
-                        td.textContent = val === undefined || val === null ? "-" : val;
+                        td.textContent = (val === undefined || val === null) ? "-" : val;
                     }
                     tr.appendChild(td);
                 });
@@ -265,15 +268,15 @@
         }
 
         /**
-         * Handles column sorting
+         * Sorting logic for column headers
          */
         function handleSort(key) {
             sortState.desc = (sortState.key === key) ? !sortState.desc : false;
             sortState.key = key;
 
             fullUnitsData.sort((a, b) => {
-                const v1 = a[key];
-                const v2 = b[key];
+                const v1 = a[key] || "";
+                const v2 = b[key] || "";
                 const res = isNaN(v1) || isNaN(v2) 
                     ? String(v1).localeCompare(String(v2), undefined, { numeric: true })
                     : parseFloat(v1) - parseFloat(v2);
