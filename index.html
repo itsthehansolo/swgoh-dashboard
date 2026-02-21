@@ -1,300 +1,155 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWGHDash</title>
+    <title>SWGOH Mod Dashboard</title>
+    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link id="favicon" rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar and theme colors */
-        body { background-color: #0b1120; color: #f1f5f9; }
-        .bg-dark-header { background-color: #111827; }
-        .bg-dark-menu { background-color: #1e293b; }
-        .text-swgoh-orange { color: #facc15; }
-        .border-slate-custom { border-color: #334155; }
-        
-        /* Table Cell Logic Colors */
-        .match-green { background-color: #14532d !important; color: #bbf7d0; }
-        .mismatch-red { background-color: #7f1d1d !important; color: #fecaca; }
-        
-        /* Table widths and padding */
-        .master-container { max-width: 1350px; margin: 0 auto; padding: 0 2rem; }
-        table { border-collapse: separate; border-spacing: 0; }
-        th { 
-            background-color: #1e293b; 
-            color: #94a3b8; 
-            font-size: 0.65rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.05em;
-            padding: 12px;
-            border-bottom: 2px solid #0f172a;
-            cursor: pointer;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-        th:hover { background-color: #334155; color: #facc15; }
-        td { 
-            padding: 8px 12px; 
-            border-bottom: 1px solid #1e293b; 
-            font-size: 0.85rem; 
-            white-space: nowrap; 
-        }
-        tr:hover td { background-color: rgba(51, 65, 85, 0.3); }
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom utility classes for mod status */
+        .mod-perfect { @apply bg-green-100 text-green-800 border-green-200; }
+        .mod-missing { @apply bg-red-100 text-red-800 border-red-200; }
+        .relic-high { @apply bg-purple-100 text-purple-900 font-bold border-purple-300; }
+        .relic-mid { @apply bg-blue-100 text-blue-900 font-bold border-blue-300; }
     </style>
 </head>
-<body class="antialiased font-sans">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
-    <!-- Header Section -->
-    <div class="bg-dark-header border-b border-slate-custom">
-        <div class="master-container py-4 flex flex-wrap items-center justify-between gap-6">
-            <div class="flex items-center gap-8">
-                <h1 class="text-3xl font-black text-swgoh-orange tracking-tighter">SWGHDash</h1>
-                <div id="header-stats" class="flex gap-6 text-[11px] uppercase tracking-wider font-bold">
-                    <span class="text-slate-600">Väntar på data...</span>
-                </div>
+    <div id="app" class="max-w-[1600px] mx-auto p-4 md:p-8">
+        <!-- Header Section -->
+        <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 id="player-name" class="text-3xl font-bold text-slate-800">Loading player...</h1>
+                <p id="last-updated" class="text-slate-500 text-sm italic"></p>
             </div>
-            
-            <div class="relative">
-                <input type="text" id="char-search" placeholder="Search Characters..." 
-                       class="bg-slate-800 border border-slate-700 rounded-md px-4 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500/50 w-64 placeholder-slate-500">
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation Menu -->
-    <div class="bg-dark-menu shadow-md">
-        <div class="master-container">
-            <nav id="top-menu" class="flex items-center gap-1 text-sm font-medium py-2">
-                <span class="text-slate-600">Ingen meny tillgänglig</span>
+            <!-- Navigation menu generated from JSON -->
+            <nav id="menu" class="flex flex-wrap gap-2">
             </nav>
-        </div>
-    </div>
+        </header>
 
-    <!-- Table Section -->
-    <main class="master-container mt-8">
-        <!-- Enhanced Error Box -->
-        <div id="error-display" class="hidden bg-red-900/20 border border-red-500/50 text-red-200 p-6 rounded-lg mb-6 shadow-lg">
-            <h2 class="font-bold text-lg mb-2 flex items-center gap-2">
-                <span>⚠️</span> Inläsningsfel
-            </h2>
-            <div id="error-message" class="text-sm space-y-2"></div>
-            <div id="debug-info" class="mt-4 p-3 bg-black/40 rounded font-mono text-[10px] text-red-300 hidden"></div>
-            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-colors">
-                FÖRSÖK IGEN
-            </button>
-        </div>
-
-        <div class="bg-dark-header rounded-t-lg border border-slate-custom overflow-hidden shadow-2xl">
-            <div class="overflow-x-auto no-scrollbar">
-                <table class="w-full text-left">
+        <!-- Unit Data Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr id="table-headers">
-                            <!-- Headers generated from JSON -->
+                        <tr class="bg-slate-800 text-white text-sm uppercase tracking-wider">
+                            <th class="p-4 border-b border-slate-700">Unit</th>
+                            <th class="p-4 border-b border-slate-700 text-center">Stars</th>
+                            <th class="p-4 border-b border-slate-700 text-center">Lvl</th>
+                            <th class="p-4 border-b border-slate-700 text-center">Gear</th>
+                            <th class="p-4 border-b border-slate-700">Mod Sets</th>
+                            <th class="p-4 border-b border-slate-700">Square</th>
+                            <th class="p-4 border-b border-slate-700">Arrow</th>
+                            <th class="p-4 border-b border-slate-700">Diamond</th>
+                            <th class="p-4 border-b border-slate-700">Triangle</th>
+                            <th class="p-4 border-b border-slate-700">Circle</th>
+                            <th class="p-4 border-b border-slate-700">Cross</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body">
-                        <tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Initierar dashboard...</td></tr>
+                    <tbody id="unit-table-body" class="text-sm divide-y divide-slate-100">
+                        <!-- Unit rows will be injected here -->
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        <footer class="mt-8 mb-12 text-center">
-            <div id="build-info" class="text-[10px] font-mono text-slate-600 uppercase tracking-[0.2em]"></div>
-        </footer>
-    </main>
+    </div>
 
     <script>
-        // Constants
-        const DATA_FILE = 'db_master_data.json';
-        let fullUnitsData = [];
-        let sortState = { key: 'name', desc: false };
-
         /**
-         * Normalize text for comparison logic
+         * Main function to load and render the dashboard data.
          */
-        function normalize(val) {
-            if (!val || val === "-") return "";
-            return val.toString().toLowerCase()
-                      .replace(/critical/g, 'crit')
-                      .replace(/damage/g, 'dmg')
-                      .trim();
-        }
-
-        /**
-         * Logic to highlight mod mismatches
-         */
-        function getCellClass(value, key, unit) {
-            const modMap = {
-                "Arrow": "Arrow(r)",
-                "Triangle": "Triangle(r)",
-                "Circle": "Circle(r)",
-                "Cross": "Cross(r)"
-            };
-
-            const recKey = modMap[key];
-            if (!recKey || !unit[recKey] || unit[recKey] === "-") return "";
-            
-            return normalize(value) === normalize(unit[recKey]) ? "match-green" : "mismatch-red";
-        }
-
-        /**
-         * Detailed error reporting
-         */
-        function showError(msg, debug = null) {
-            document.getElementById('error-display').classList.remove('hidden');
-            document.getElementById('error-message').textContent = msg;
-            if (debug) {
-                const debugDiv = document.getElementById('debug-info');
-                debugDiv.classList.remove('hidden');
-                debugDiv.textContent = `Debug Info: ${JSON.stringify(debug, null, 2)}`;
-            }
-        }
-
-        /**
-         * Main Data Loading Logic
-         */
-        async function init() {
+        async function loadDashboard() {
             try {
-                // Add timestamp to prevent caching issues on GitHub
-                const response = await fetch(DATA_FILE + '?v=' + Date.now());
-                
-                if (!response.ok) {
-                    throw new Error(`Kunde inte hitta ${DATA_FILE} (HTTP ${response.status})`);
-                }
-                
+                // Fetch the merged JSON data from the root directory
+                const response = await fetch('swgoh_data.json');
+                if (!response.ok) throw new Error('Could not find swgoh_data.json in the current directory');
                 const data = await response.json();
-                
-                // Integrity check
-                if (!data || typeof data !== 'object') throw new Error("JSON-filen är inte ett giltigt objekt.");
-                if (!data.units || !Array.isArray(data.units)) throw new Error("Fältet 'units' saknas eller är inte en lista.");
 
-                const meta = data.metadata || {};
-                
-                // Render Favicon
-                if (meta.favicon) document.getElementById('favicon').href = meta.favicon;
-
-                // Render Header Stats with defaults
-                const statsDiv = document.getElementById('header-stats');
-                const headerItems = Array.isArray(meta.header) ? meta.header : [];
-                if (headerItems.length > 0) {
-                    statsDiv.innerHTML = headerItems.map(s => `
-                        <div class="flex gap-2">
-                            <span class="text-slate-500">${s.label || ''}</span>
-                            <span class="text-swgoh-orange">${isNaN(s.value) ? (s.value || '0') : Number(s.value).toLocaleString()}</span>
-                        </div>
-                    `).join('');
+                // Update Header Info
+                document.getElementById('player-name').textContent = data.header?.['Player Name'] || 'SWGOH Dashboard';
+                if (data.header?.['Last Updated']) {
+                    document.getElementById('last-updated').textContent = `Last updated: ${data.header['Last Updated']}`;
                 }
 
-                // Render Menu with defaults
-                const menuNav = document.getElementById('top-menu');
-                const menuItems = Array.isArray(meta.menu) ? meta.menu : [];
-                if (menuItems.length > 0) {
-                    menuNav.innerHTML = menuItems.map((m, idx) => `
-                        ${idx > 0 ? '<span class="text-slate-600 px-1">|</span>' : ''}
-                        <a href="${m.url || '#'}" target="_blank" class="px-2 py-1 hover:text-swgoh-orange transition-colors">${m.label || 'Länk'}</a>
-                    `).join('');
-                }
-
-                // Build info
-                const buildTime = meta.generated_at ? meta.generated_at.replace(/[: -]/g, '').slice(2) : 'local';
-                document.getElementById('build-info').textContent = `v2.0_${buildTime}`;
-
-                fullUnitsData = data.units;
-
-                // Create table structure
-                if (fullUnitsData.length > 0) {
-                    // Collect ALL unique keys from all units to ensure no columns are missed
-                    const allKeys = new Set();
-                    fullUnitsData.forEach(u => Object.keys(u).forEach(k => allKeys.add(k)));
-                    createHeaders(Array.from(allKeys));
-                    
-                    // Sort by name as default
-                    fullUnitsData.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { numeric: true }));
-                    renderTable(fullUnitsData, Array.from(allKeys));
-                } else {
-                    document.getElementById('table-body').innerHTML = `<tr><td colspan="20" class="text-center py-20 text-slate-500 italic">Ingen data hittades i 'units'.</td></tr>`;
-                }
-
-                // Search handler
-                document.getElementById('char-search').addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase();
-                    const filtered = fullUnitsData.filter(u => (u.name || "").toLowerCase().includes(term));
-                    const currentKeys = Array.from(new Set(fullUnitsData.flatMap(u => Object.keys(u))));
-                    renderTable(filtered, currentKeys);
+                // Build Menu Links
+                const menuContainer = document.getElementById('menu');
+                data.menu?.forEach(item => {
+                    const link = document.createElement('a');
+                    link.href = item.url;
+                    link.textContent = item.label;
+                    link.className = "px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm";
+                    menuContainer.appendChild(link);
                 });
 
-            } catch (err) {
-                console.error("Initialization Failed:", err);
-                showError("Ett fel uppstod vid bearbetning av data.", err.message);
+                // Build Unit Table Rows
+                const tbody = document.getElementById('unit-table-body');
+                data.units.forEach(unit => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+
+                    /**
+                     * Helper to check if the current mod stat matches the recommendation.
+                     * Returns CSS classes based on the match result.
+                     */
+                    const checkMatch = (current, recommended) => {
+                        if (!recommended || recommended === "") return "bg-white text-slate-400"; // No recommendation in database
+                        if (!current || current === "") return "mod-missing";
+                        // Case-insensitive inclusion check
+                        return current.toLowerCase().includes(recommended.toLowerCase()) ? "mod-perfect font-semibold" : "mod-missing";
+                    };
+
+                    // Gear and Relic styling logic
+                    let gearClass = "text-center font-bold";
+                    if (unit.gear && unit.gear.startsWith('R')) {
+                        const rLevel = parseInt(unit.gear.replace('R', ''));
+                        if (rLevel >= 7) gearClass += " text-purple-600 bg-purple-50";
+                        else if (rLevel >= 1) gearClass += " text-blue-600 bg-blue-50";
+                    } else if (unit.gear === "G13") {
+                        gearClass += " text-blue-500";
+                    }
+
+                    // Virtual Speed Logic for Square & Diamond (Static slots that always have same Primary)
+                    // We color them green if they contain a speed secondary (v_square_speed / v_diamond_speed = "yes" or "1")
+                    const vSquareClass = (unit.v_square_speed === "yes" || unit.v_square_speed === "1") ? "mod-perfect font-semibold" : "bg-white";
+                    const vDiamondClass = (unit.v_diamond_speed === "yes" || unit.v_diamond_speed === "1") ? "mod-perfect font-semibold" : "bg-white";
+
+                    // Construct Row HTML
+                    tr.innerHTML = `
+                        <td class="p-4">
+                            <a href="${unit.url}" target="_blank" class="font-bold text-blue-600 hover:underline">${unit.name}</a>
+                        </td>
+                        <td class="p-4 text-center font-semibold ${unit.stars === 7 ? 'text-amber-500' : ''}">${unit.stars}*</td>
+                        <td class="p-4 text-center text-slate-500">${unit.level}</td>
+                        <td class="p-4 ${gearClass}">${unit.gear}</td>
+                        <td class="p-4 border-l ${checkMatch(unit.set, unit['set(r)'])}">${unit.set || '-'}</td>
+                        <td class="p-4 border-l ${vSquareClass}">${unit.square || '-'}</td>
+                        <td class="p-4 border-l ${checkMatch(unit.arrow, unit['arrow(r)'])}">${unit.arrow || '-'}</td>
+                        <td class="p-4 border-l ${vDiamondClass}">${unit.diamond || '-'}</td>
+                        <td class="p-4 border-l ${checkMatch(unit.triangle, unit['triangle(r)'])}">${unit.triangle || '-'}</td>
+                        <td class="p-4 border-l ${checkMatch(unit.circle, unit['circle(r)'])}">${unit.circle || '-'}</td>
+                        <td class="p-4 border-l ${checkMatch(unit.cross, unit['cross(r)'])}">${unit.cross || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                // Error handling UI in case JSON fails to load
+                console.error("Dashboard Load Error:", error);
+                document.getElementById('app').innerHTML = `
+                    <div class="bg-red-50 border border-red-200 p-6 rounded-xl text-red-800 max-w-2xl mx-auto mt-10">
+                        <h2 class="text-xl font-bold mb-2">Error loading data</h2>
+                        <p>${error.message}</p>
+                        <p class="mt-4 text-sm font-mono bg-white p-2 border border-red-100">Ensure that 'swgoh_data.json' is located in the same folder as this HTML file.</p>
+                    </div>
+                `;
             }
         }
 
-        /**
-         * Generates table headers from key list
-         */
-        function createHeaders(keys) {
-            const row = document.getElementById('table-headers');
-            row.innerHTML = '';
-            keys.forEach(key => {
-                const th = document.createElement('th');
-                th.textContent = key;
-                th.onclick = () => handleSort(key, keys);
-                row.appendChild(th);
-            });
-        }
-
-        /**
-         * Renders table rows based on filtered/sorted data
-         */
-        function renderTable(units, keys) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-
-            units.forEach(u => {
-                const tr = document.createElement('tr');
-                keys.forEach(key => {
-                    const td = document.createElement('td');
-                    const val = u[key];
-                    const colorClass = getCellClass(val, key, u);
-                    if (colorClass) td.className = colorClass;
-
-                    // Specific styling for certain columns
-                    if (key.toLowerCase() === "name") td.classList.add("text-blue-400", "font-medium");
-                    if (key.toLowerCase() === "kyro") td.classList.add("text-center", "text-orange-400", "font-mono");
-                    
-                    if (key.toLowerCase() === "url") {
-                        td.innerHTML = val ? `<a href="${val}" target="_blank" class="text-slate-500 hover:text-swgoh-orange transition-colors">🔗</a>` : "-";
-                    } else {
-                        td.textContent = (val === undefined || val === null) ? "-" : val;
-                    }
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-        }
-
-        /**
-         * Column sorting handler
-         */
-        function handleSort(key, keys) {
-            sortState.desc = (sortState.key === key) ? !sortState.desc : false;
-            sortState.key = key;
-
-            fullUnitsData.sort((a, b) => {
-                const v1 = a[key] || "";
-                const v2 = b[key] || "";
-                const res = isNaN(v1) || isNaN(v2) 
-                    ? String(v1).localeCompare(String(v2), undefined, { numeric: true })
-                    : parseFloat(v1) - parseFloat(v2);
-                return sortState.desc ? res * -1 : res;
-            });
-            renderTable(fullUnitsData, keys);
-        }
-
-        window.onload = init;
+        // Initialize when window is ready
+        window.onload = loadDashboard;
     </script>
 </body>
 </html>
